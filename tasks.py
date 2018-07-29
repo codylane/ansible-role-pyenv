@@ -134,7 +134,9 @@ def tar(c, output='codylane.pyenv', install=True):
     excludes = ' '.join(['--exclude ' + e for e in exclude_pattern])
     if excludes:
         extras += excludes
-    c.run('tar czvf {output} -C {directory} {extras} .'.format(output=output, directory=PROJECT_ROOT_DIR, extras=extras))
+    c.run('tar czvf {output} -C {directory} {extras} .'.format(output=output,
+                                                               directory=PROJECT_ROOT_DIR,
+                                                               extras=extras))
 
     if install:
         c.run('ansible-galaxy install --force --roles-path molecule/roles ' + output)
