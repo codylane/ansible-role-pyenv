@@ -13,16 +13,15 @@ galaxy_info:
         - 7
     - name: Ubuntu
       versions:
-        - 14.04
-        - 16.04
-        - 18.04
+        - trusty
+        - xenial
+        - bionic
   galaxy_tags:
     - cicd
     - development
     - jenkins
     - python
     - pyenv
-    - pyenv-virtualenv
     - testing
     - travis
     - virtualenv

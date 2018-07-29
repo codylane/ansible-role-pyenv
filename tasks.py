@@ -6,7 +6,6 @@ from invoke import context
 from io import open
 
 import os
-import testinfra
 import yaml
 
 
