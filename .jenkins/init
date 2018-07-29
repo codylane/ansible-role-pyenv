@@ -8,10 +8,14 @@ cd ${BIN_DIR}/..
 PRJ_ROOT_DIR="${PWD}"
 echo "INFO: running in directory $PRJ_ROOT_DIR"
 
-PYENV_ROOT="$(pyenv root)"
-export PYENV_ROOT="${PYENV_ROOT:-/opt/pyenv}"
+export PYENV_ROOT="${HOME}/.pyenv"
 export PATH="${HOME}/.pyenv/bin:${HOME}/.pyenv/shims:${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/puppetlabs/bin:/var/lib/jenkins/.local/bin:/var/lib/jenkins/bin"
+
+[ -d "${PYENV_ROOT}" ] || git clone https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
+
 eval "$(pyenv init -)"
+
+PYENV_VERSION=2.7.15 pyenv version || pyenv install 2.7.15
 
 pyenv versions
 
@@ -23,5 +27,7 @@ virtualenv -p python2.7 ${VENV_NAME}
 . ${VENV_NAME}/bin/activate
 
 pip install -r test-requirements.txt
+
+pyenv rehash
 
 pip list
