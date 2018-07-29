@@ -1,0 +1,39 @@
+---
+
+yum_repo_packages:
+  - epel-release
+  - centos-release-scl
+
+required_packages:
+  - autoconf
+  - automake
+  - bzip2
+  - bzip2-devel
+  - cmake
+  - ctags
+  - db4-devel
+  - expat-devel
+  - git
+  - gcc
+  - gcc-c++
+  - gdbm-devel
+  - kernel-devel
+  - libffi-devel
+  - libpcap-devel
+  - libtool
+  - make
+  - ncurses-devel
+  - openssl-devel
+  - patch
+  - patchutils
+  - pkgconfig
+  - python-devel
+  - python-setuptools
+  - readline-devel
+  - sqlite
+  - sqlite-devel
+  - sqlite2-devel
+  - tk-devel
+  - zlib-devel
+  - xz
+  - xz-devel

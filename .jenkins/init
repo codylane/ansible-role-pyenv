@@ -1,0 +1,27 @@
+#!/bin/bash -e
+
+BIN_DIR="${0%/*}"
+PRJ_ROOT_DIR=
+VENV_NAME=".jenkins-venv"
+
+cd ${BIN_DIR}/..
+PRJ_ROOT_DIR="${PWD}"
+echo "INFO: running in directory $PRJ_ROOT_DIR"
+
+PYENV_ROOT="$(pyenv root)"
+export PYENV_ROOT="${PYENV_ROOT:-/opt/pyenv}"
+export PATH="${HOME}/.pyenv/bin:${HOME}/.pyenv/shims:${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/puppetlabs/bin:/var/lib/jenkins/.local/bin:/var/lib/jenkins/bin"
+eval "$(pyenv init -)"
+
+pyenv versions
+
+pyenv local 2.7.15
+
+python2 --version
+
+virtualenv -p python2.7 ${VENV_NAME}
+. ${VENV_NAME}/bin/activate
+
+pip install -r test-requirements.txt
+
+pip list

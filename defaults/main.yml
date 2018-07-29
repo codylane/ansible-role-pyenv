@@ -1,0 +1,24 @@
+---
+
+pyenv_git:
+  repo: 'https://github.com/pyenv/pyenv.git'
+  remote: origin
+  version: master
+  update: true
+pyenv_root: /opt/pyenv
+pyenv_profiled_script: /etc/profile.d/pyenv.sh
+pyenv_user: root
+pyenv_group: root
+pyenv_install_these_pythons:
+  - 2.6.9
+  - 2.7.15
+  - 3.4.8
+  - 3.5.5
+  - 3.6.6
+  - 3.7.0
+pyenv_activated_plugins:
+  - repo: 'https://github.com/pyenv/pyenv-virtualenv'
+    name: pyenv-virtualenv
+    remote: origin
+    version: master
+    update: true

@@ -1,0 +1,13 @@
+## files
+*.pyc
+*.retry
+.python-version
+pytestdebug.log
+molecule/*/ansible.cfg
+molecule/*/inventory
+
+## directories
+*.vagrant/
+.pytest_cache/
+molecule/*/tmp/
+.jenkins-venv/

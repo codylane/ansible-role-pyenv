@@ -1,0 +1,39 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint:
+  name: yamllint
+platforms:
+  - name: pyenv_ubuntu1404
+    image: ubuntu:14.04
+    docker_host: "${DOCKER_HOST}"
+  - name: pyenv_ubuntu1604
+    image: ubuntu:16.04
+    docker_host: "${DOCKER_HOST}"
+  - name: pyenv_ubuntu1804
+    image: ubuntu:18.04
+    docker_host: "${DOCKER_HOST}"
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      pipelining: true
+      gathering: smart
+      fact_caching: jsonfile
+      fact_caching_connection: tmp/ansible-facts
+      fact_caching_timeout: 300
+  options:
+    v: true
+  lint:
+    name: ansible-lint
+scenario:
+  name: debian
+verifier:
+  name: testinfra
+  options:
+    vv: true
+    s: true
+  lint:
+    name: flake8

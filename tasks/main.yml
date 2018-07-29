@@ -1,0 +1,201 @@
+---
+
+- name: Include OS specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_os_family }}.yml"
+
+- name: Creating custom facts for matching python versions
+  set_fact:
+    python26: "{{ pyenv_install_these_pythons | select('match', '^2\\.6') | list }}"
+    python27: "{{ pyenv_install_these_pythons | select('match', '^2\\.7') | list }}"
+    python2: "{{ pyenv_install_these_pythons | select('match', '^2') | list }}"
+    python34: "{{ pyenv_install_these_pythons | select('match', '^3\\.4') | list }}"
+    python35: "{{ pyenv_install_these_pythons | select('match', '^3\\.5') | list }}"
+    python36: "{{ pyenv_install_these_pythons | select('match', '^3\\.6') | list }}"
+    python37: "{{ pyenv_install_these_pythons | select('match', '^3\\.7') | list }}"
+    python3: "{{ pyenv_install_these_pythons | select('match', '^3') | list }}"
+
+- name: show state of custom facts
+  debug:
+    msg: "python26={{ python26 }} python27={{ python27 }} python2={{ python2 }} python34={{ python34}} python35={{ python35 }} python36={{ python36 }} python37={{ python37 }} python3={{ python3 }}"
+
+- name: Install extra yum repos
+  yum:
+    name: "{{ yum_repo_packages }}"
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+
+- name: Install required development libraries to compile pythons
+  yum:
+    name: "{{ required_packages }}"
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+
+- name: Install required development libraries to compile pythons
+  apt:
+    name: "{{ required_packages }}"
+    state: present
+  when:
+    - ansible_os_family == 'Debian'
+
+- name: Install additional required development libraries to compile pythons for older debian
+  apt:
+    name: libssl-dev
+    state: present
+  when:
+    ansible_os_family == 'Debian'
+    and
+    (ansible_distribution_major_version == '14' or ansible_distribution_major_version == '16')
+
+- name: Install additional required development libraries to compile pythons for newer debian
+  apt:
+    name: libssl1.0-dev
+    state: present
+  when:
+    ansible_os_family == 'Debian'
+    and
+    ansible_distribution_major_version == '18'
+
+- name: Install pyenv
+  git:
+    version: "{{ pyenv_git.version }}"
+    repo: "{{ pyenv_git.repo }}"
+    dest: "{{ pyenv_root }}"
+    remote: "{{ pyenv_git.remote }}"
+    recursive: true
+    force: false
+    clone: true
+    bare: false
+    accept_hostkey: true
+    update: "{{ pyenv_git.update | bool }}"
+    verify_commit: false
+
+- name: Install pyenv plugins
+  git:
+    version: "{{ item.version }}"
+    repo: "{{ item.repo }}"
+    dest: "{{ pyenv_root }}/plugins/{{ item.name }}"
+    remote: "{{ item.remote }}"
+    recursive: true
+    force: false
+    clone: true
+    bare: false
+    accept_hostkey: true
+    update: "{{ item.update | bool }}"
+    verify_commit: false
+  with_items:
+    "{{ pyenv_activated_plugins }}"
+
+- name: Creating /etc/profile.d/pyenv
+  copy:
+    dest: "{{ pyenv_profiled_script }}"
+    content: |
+      export PYENV_ROOT="${PYENV_ROOT:-{{ pyenv_root }}}"
+      export PATH="${PYENV_ROOT}/bin:${PATH}"
+      eval "$(pyenv init -)"
+      [ -d "${PYENV_ROOT}/plugins/pyenv-virtualenv" ] && eval "$(pyenv virtualenv-init -)"
+    owner: root
+    group: root
+    mode: 0644
+
+# Python requires an OpenSSL 1.0.2 or 1.1 compatible libssl with X509_VERIFY_PARAM_set1_host().
+# LibreSSL 2.6.4 and earlier do not provide the necessary APIs, https://github.com/libressl-portable/portable/issues/381
+- name: failing redhat build if trying to install 3.7
+  fail:
+    msg: "You cannot install 3.7.x on {{ ansible_distribution }}:{{ ansible_distribution_major_version }} due to openssl version constraints. (LibreSSL 2.6.4 and earlier do not provide the necessary APIs, https://github.com/libressl-portable/portable/issues/381)"
+  when:
+    ansible_os_family == 'RedHat'
+    and
+    ansible_distribution_major_version == '6'
+    and
+    python37 != []
+
+# Python requires an OpenSSL 1.0.2 or 1.1 compatible libssl with X509_VERIFY_PARAM_set1_host().
+# LibreSSL 2.6.4 and earlier do not provide the necessary APIs, https://github.com/libressl-portable/portable/issues/381
+- name: failing debian build if trying to install 3.7
+  fail:
+    msg: "You cannot install 3.7.x on {{ ansible_distribution}}:{{ ansible_distribution_major_version }} due to openssl version constraints. (LibreSSL 2.6.4 and earlier do not provide the necessary APIs, https://github.com/libressl-portable/portable/issues/381)"
+  when:
+    ansible_os_family == 'Debian'
+    and
+    ansible_distribution_major_version == '14'
+    and
+    python37 != []
+
+- name: Install python
+  shell: ". {{ pyenv_profiled_script }}; pyenv install {{ item }}"
+  args:
+    creates: "{{ pyenv_root }}/versions/{{ item }}"
+  with_items:
+    "{{ pyenv_install_these_pythons }}"
+
+- name: Creating default python locations
+  file:
+    state: directory
+    path: "/opt/python/{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    "{{ pyenv_install_these_pythons }}"
+
+- name: Setting up local python versions
+  shell: ". {{ pyenv_profiled_script }}; pyenv local {{ item }}"
+  args:
+    creates: "/opt/python/{{ item }}/.python-version"
+    chdir: "/opt/python/{{ item }}"
+  with_items:
+    "{{ pyenv_install_these_pythons }}"
+
+- name: Upgrade pip for python 2.6.x
+  pip:
+    name: "{{ packages }}"
+    executable: "/opt/pyenv/versions/2.6.9/bin/pip"
+    state: present
+  vars:
+    packages:
+      - pyOpenSSL==17.5.0
+      - ndg-httpsclient==0.5.0
+      - pyasn1
+      - pip==9.0.3
+  with_items:
+    "{{ python26 }}"
+  when:
+    python26 != []
+
+- name: Upgrade pip for python 2.7 and python 3.x
+  pip:
+    name: pip==10.0.1
+    executable: "/opt/pyenv/versions/{{ item }}/bin/pip"
+    state: present
+  with_items:
+    - "{{ python27 }}"
+    - "{{ python3 }}"
+  when:
+    python3 != []
+    or
+    python27 != []
+
+- name: Installing pip packages
+  pip:
+    executable: "/opt/pyenv/versions/{{ item }}/bin/pip"
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - invoke
+      - virtualenv
+      - virtualenvwrapper
+  with_items:
+    "{{ pyenv_install_these_pythons }}"
+
+- name: Fix cloned perms
+  file:
+    state: directory
+    path: "{{ pyenv_root }}"
+    owner: "{{ pyenv_user }}"
+    group: "{{ pyenv_group}}"
+    recurse: true
