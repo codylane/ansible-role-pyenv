@@ -8,6 +8,10 @@ before_install:
   - .travis/init
 
 script:
+  - export PYENV_ROOT="${HOME}/.pyenv"
+  - export PATH="${PYENV_ROOT}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/puppetlabs/bin:${PATH}"
+  - eval "$(pyenv init -)"
+  - eval "$(pyenv virtualenv-init -)"
   - invoke travis
   - invoke travis -s debian
   - invoke travis -s squash_bug_hardcoded_pyenv_root
