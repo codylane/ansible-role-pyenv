@@ -9,6 +9,9 @@ Install/Configure and manage [pyenv](https://github.com/pyenv/pyenv)
 
 * - EL 6
 * - EL 7
+* - Debian jessie
+* - Debian stretch
+* - Debian buster
 * - Ubuntu 14.04
 * - Ubuntu 16.04
 * - Ubuntu 18.04
