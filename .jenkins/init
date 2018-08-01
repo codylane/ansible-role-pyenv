@@ -2,31 +2,41 @@
 
 BIN_DIR="${0%/*}"
 PRJ_ROOT_DIR=
-VENV_NAME=".jenkins-venv"
+VENV_NAME="codylane.pyenv"
+VENV_PYTHON="2.7.15"
+
+cd ${BIN_DIR}
+BIN_DIR="${PWD}"
 
 cd ${BIN_DIR}/..
 PRJ_ROOT_DIR="${PWD}"
+
 echo "INFO: running in directory $PRJ_ROOT_DIR"
 
 export PYENV_ROOT="${HOME}/.pyenv"
-export PATH="${HOME}/.pyenv/bin:${HOME}/.pyenv/shims:${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/puppetlabs/bin:/var/lib/jenkins/.local/bin:/var/lib/jenkins/bin"
+export PATH="${PYENV_ROOT}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/puppetlabs/bin:${PATH}"
 
 [ -d "${PYENV_ROOT}" ] || git clone https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
+[ -d "${PYENV_ROOT}/plugins/pyenv-virtualenv" ] || git clone https://github.com/pyenv/pyenv-virtualenv.git "${PYENV_ROOT}/plugins/pyenv-virtualenv"
 
 eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
 
-PYENV_VERSION=2.7.15 pyenv version || pyenv install 2.7.15
+# install pythons
+[ -d "${PYENV_ROOT}/versions/${VENV_PYTHON}" ] || pyenv install ${VENV_PYTHON}
+
+pyenv rehash
+
+pyenv uninstall -f ${VENV_NAME}
+pyenv virtualenv ${VENV_PYTHON} ${VENV_NAME}
 
 pyenv versions
 
-pyenv local 2.7.15
+pyenv local ${VENV_NAME}
 
 python2 --version
 
-virtualenv -p python2.7 ${VENV_NAME}
-. ${VENV_NAME}/bin/activate
-
-pip install -r test-requirements.txt
+pip install -r ${PRJ_ROOT_DIR}/test-requirements.txt
 
 pyenv rehash
 

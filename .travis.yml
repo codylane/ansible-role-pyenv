@@ -8,9 +8,9 @@ before_install:
   - .travis/init
 
 script:
-  - . .jenkins-venv/bin/activate
   - invoke travis
   - invoke travis -s debian
+  - invoke travis -s squash_bug_hardcoded_pyenv_root
 
 matrix:
   fast_finish: true

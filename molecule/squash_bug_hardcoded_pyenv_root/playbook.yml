@@ -1,0 +1,24 @@
+---
+
+- name: Converge squash bug hard coded pyenv_root
+  hosts: all
+
+  pre_tasks:
+    - name: create jenkins group
+      group:
+        name: jenkins
+        state: present
+
+    - name: create jenkins user
+      user:
+        name: jenkins
+        state: present
+        shell: /bin/bash
+
+  roles:
+    - role: codylane.pyenv
+      pyenv_root: /root/.pyenv
+      pyenv_user: jenkins
+      pyenv_group: jenkins
+      pyenv_install_these_pythons:
+        - 2.7.15

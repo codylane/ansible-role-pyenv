@@ -1,0 +1,34 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint:
+  name: yamllint
+platforms:
+  - name: squash_bug_hardcoded_pyenv_root
+    image: centos:7
+    docker_host: "${DOCKER_HOST}"
+    volumes:
+      - ${PWD}:/codylane.pyenv
+provisioner:
+  name: ansible
+  log: true
+  config_options:
+    defaults:
+      pipelining: true
+      gathering: smart
+      fact_caching: jsonfile
+      fact_caching_connection: tmp/ansible-facts
+      fact_caching_timeout: 300
+  lint:
+    name: ansible-lint
+scenario:
+  name: squash_bug_hardcoded_pyenv_root
+verifier:
+  name: testinfra
+  options:
+    v: true
+    s: true
+  lint:
+    name: flake8
