@@ -12,9 +12,9 @@ Install/Configure and manage [pyenv](https://github.com/pyenv/pyenv)
 * - Debian jessie
 * - Debian stretch
 * - Debian buster
-* - Ubuntu 14.04
-* - Ubuntu 16.04
-* - Ubuntu 18.04
+* - Ubuntu trusty
+* - Ubuntu xenial
+* - Ubuntu bionic
 
 # Role Variables
 
@@ -93,10 +93,38 @@ MIT
 
 # Ansible Testing Requirements
 
+* We use the awesome [invoke](http://www.pyinvoke.org/) python library of wrapping how we test.
+* Molecule is being as a test harness but we use `invoke` to provide some additional bootstraping.
+
+
+* We first setup our test environment, install pyenv, some pythons, our test requirements... etc.
 ```
-.jenkins/init
-. .jenkins-venv/bin/activate
+.jenkins/init-pyenv
 ```
+
+#### When testing in travis
+
+##### travis usage `.jenkins/run-pyenv 'invoke travis -h'`
+
+```
+Usage: inv[oke] [--core-opts] travis [--options] [other tasks here ...]
+
+Docstring:
+  Run our tests but help travis along
+
+Options:
+  -d, --[no-]destroy
+  -p, --[no-]pty
+  -s, --scenario
+```
+
+* Here is an example of testing just the `default` molecule role
+
+```
+.jenkins/run-pyenv 'invoke travis'
+```
+
+* See [.travis.yml](.travis.yml) for more info
 
 
 # Author Information

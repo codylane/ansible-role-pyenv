@@ -1,0 +1,7 @@
+#!/bin/bash -e
+
+CMD="${BASH_SOURCE[0]}"
+BIN_DIR="${CMD%/*}"
+. "${BIN_DIR}/enable-pyenv"
+
+eval "$@"

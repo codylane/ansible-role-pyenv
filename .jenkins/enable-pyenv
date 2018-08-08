@@ -1,0 +1,86 @@
+#!/bin/bash -e
+
+CMD="${BASH_SOURCE[0]}"
+cd ${BIN_DIR}
+BIN_DIR="${PWD}"
+
+cd ${BIN_DIR}/..
+PRJ_ROOT_DIR="${PWD}"
+
+export PYENV_ROOT="${HOME}/.pyenv"
+export PATH="${PYENV_ROOT}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:${PATH}"
+export BIN_DIR="${BIN_DIR}"
+export PRJ_ROOT_DIR
+export VENV_NAME="codylane.pyenv"
+export VENV_PYTHON="2.7.15"
+
+warn() {
+  echo "WARNING: $*"
+}
+
+create-pyenv-virtualenv-name() {
+  [ -z "${1}" ] && warn "create-pyenv-virtualenv-name requires an argument"
+
+  echo "${VENV_NAME}-${1}"
+}
+
+
+create-pyenv-virtualenv() {
+  local PY_VERSION="${1}"
+  [ -z "$PY_VERSION" ] && warn "create-pyenv-virtualenv requires an argument"
+
+  install-pyenv-python "${PY_VERSION}"
+
+  VENV_NAME="$(create-pyenv-virtualenv-name "${PY_VERSION}")"
+
+  pyenv uninstall -f "${VENV_NAME}"
+
+  pyenv virtualenv "${PY_VERSION}" "${VENV_NAME}"
+
+  pyenv local ${VENV_NAME}
+
+  pip install --upgrade pip
+  [ -e "test-requirements.txt" ] && pip install -r test-requirements.txt || true
+  [ -e "setup.py" ] && pip install -e . || true
+  pip list
+
+  pyenv rehash
+
+}
+
+install-pyenv-python() {
+  local PY_VERSION="${1}"
+  [ -z "$PY_VERSION" ] && warn "create-pyenv-virtualenv requires an argument"
+
+  [ -d "${PYENV_ROOT}/versions/${PY_VERSION}" ] || pyenv install ${PY_VERSION}
+}
+
+
+validate-required-vars() {
+  [ -z "${BIN_DIR}" ] && warn "Please set BIN_DIR" || true
+  [ -z "${PRJ_ROOT_DIR}" ] && warn "Please set PRJ_ROOT_DIR" || true
+  [ -z "$PYENV_ROOT" ] && warn "Please set PYENV_ROOT" || true
+  [ -z "${VENV_NAME}" ] && warn "Please set VENV_NAME" || true
+  [ -z "${VENV_PYTHON}" ] && warn "Please set VENV_PYTHON" || true
+}
+
+
+## main ##
+
+echo "INFO: running in directory $PRJ_ROOT_DIR"
+echo "CMD: ${CMD}"
+echo "BIN_DIR: ${BIN_DIR}"
+echo "PRJ_ROOT_DIR: ${PRJ_ROOT_DIR}"
+echo "PYENV_ROOT: ${PYENV_ROOT}"
+echo "VENV_NAME: ${VENV_NAME}"
+echo "VENV_PYTHON: ${VENV_PYTHON}"
+
+validate-required-vars
+
+[ -d "${PYENV_ROOT}" ] || git clone https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
+[ -d "${PYENV_ROOT}/plugins/pyenv-virtualenv" ] || git clone https://github.com/pyenv/pyenv-virtualenv.git "${PYENV_ROOT}/plugins/pyenv-virtualenv"
+
+[ -d "${PYENV_ROOT}" ] && eval "$(pyenv init -)"
+[ -d "${PYENV_ROOT}/plugins/pyenv-virtualenv" ] && eval "$(pyenv virtualenv-init -)"
+
+pyenv rehash

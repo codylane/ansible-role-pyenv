@@ -1,0 +1,12 @@
+#!/bin/bash -e
+
+CMD="${BASH_SOURCE[0]}"
+BIN_DIR="${CMD%/*}"
+. "${BIN_DIR}/enable-pyenv"
+
+# install the virtualenv
+create-pyenv-virtualenv "${VENV_PYTHON}"
+
+pyenv versions
+
+python2 --version

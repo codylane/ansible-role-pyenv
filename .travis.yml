@@ -5,16 +5,12 @@ services:
   - docker
 
 before_install:
-  - .travis/init
+  - .travis/init-pyenv
 
 script:
-  - export PYENV_ROOT="${HOME}/.pyenv"
-  - export PATH="${PYENV_ROOT}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/puppetlabs/bin:${PATH}"
-  - eval "$(pyenv init -)"
-  - eval "$(pyenv virtualenv-init -)"
-  - invoke travis
-  - invoke travis -s debian
-  - invoke travis -s squash_bug_hardcoded_pyenv_root
+  - .travis/run-pyenv 'invoke travis'
+  - .travis/run-pyenv 'invoke travis -s debian'
+  - .travis/run-pyenv 'invoke travis -s squash_bug_hardcoded_pyenv_root'
 
 matrix:
   fast_finish: true
