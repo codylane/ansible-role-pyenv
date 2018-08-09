@@ -112,6 +112,7 @@ eval "$(pyenv init -)"
     (
         pytest.param('2.6.9'),
         pytest.param('2.7.15'),
+        pytest.param('3.6.6'),
     ),
 )
 def test_opt_python_version_dir_exists(host, version):
